@@ -69,7 +69,6 @@ class ConstrainedFFNNModel(nn.Module):
                 x = self.f(self.fc[i](x))
                 x = self.drop(x)
 
-        
         if self.R is None:
             return x
         
@@ -82,9 +81,7 @@ class ConstrainedFFNNModel(nn.Module):
 def main():
 
     args = parse_args()
-
-    # Set device
-    torch.cuda.set_device(int(args.device))
+    print("Args", args)
 
     # Load train, val and test set
     dataset_name, ontology = args.dataset.split("_")[:2]
@@ -163,8 +160,10 @@ def main():
     else:
         num_to_skip = 1
 
+    print("Dataloader prepared")
+
     # Prepare circuit: TODO needs cleaning
-    if not args.no_constraints:
+    if not args.no_constraints or False:
 
         if not os.path.isfile('constraints/' + dataset_name + '.sdd') or not os.path.isfile('constraints/' + dataset_name + '.vtree'):
             # Compute matrix of ancestors R
@@ -226,6 +225,7 @@ def main():
         gate = DenseGatingFunction(cmpe.beta, gate_layers=[128] + [256]*args.gates, num_reps=args.num_reps).to(device)
         R = None
 
+        print("CMPE e DenseGating function prepared...")
 
     else:
         # Use fully-factorized sdd
@@ -242,10 +242,10 @@ def main():
         R = None
 
     # We do not evaluate the performance of the model on the 'roots' node (https://dtai.cs.kuleuven.be/clus/hmcdatasets/)
-    if 'GO' in dataset_name: 
+    if 'GO' in dataset_name:
         num_to_skip = 4
     else:
-        num_to_skip = 1 
+        num_to_skip = 1
 
     # Output path
     if args.exp_id:
@@ -321,6 +321,7 @@ def main():
         print(f"test micro AP {jss}\t{(test_val_e-test_val_t):.4f}")
 
     def evaluate_circuit(model, gate, cmpe, epoch, data_loader, data_split, prefix):
+        print("Sono in evaluate circuit...")
 
         test_val_t = perf_counter()
 
@@ -382,9 +383,10 @@ def main():
         }
 
 
+    print("Running epochs...")
     for epoch in range(num_epochs):
 
-        if epoch % 5 == 0 and epoch != 0:
+        if epoch % 5 == 0:
 
             print(f"EVAL@{epoch}")
             perf = {
@@ -451,4 +453,5 @@ def main():
         print(f"{epoch+1}/{num_epochs} train loss: {tot_loss/(i+1)}\t {(train_e-train_t):.4f}")
 
 if __name__ == "__main__":
+    print("In main...")
     main()

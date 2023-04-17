@@ -195,12 +195,19 @@ def parse_args():
     fmt_class = argparse.ArgumentDefaultsHelpFormatter
     parser = argparse.ArgumentParser(formatter_class=fmt_class)
 
+    #  parser.add_argument(
+    #      "--dataset",
+    #      type=str,
+    #      default=None,
+    #      required=True,
+    #      help='dataset name, must end with: "_GO", "_FUN", or "_others"',
+    #  )
+    parser.add_argument("--wandb", "-wdb", type=bool, default=False, help="wandb")
     parser.add_argument(
-        "--dataset",
-        type=str,
-        default=None,
-        required=True,
-        help='dataset name, must end with: "_GO", "_FUN", or "_others"',
+        "--project", "-w", type=str, default="chmcnn-project", help="wandb project"
+    )
+    parser.add_argument(
+        "--entity", "-e", type=str, default="samu32", help="wandb entity"
     )
     parser.add_argument(
         "--seed",
@@ -210,7 +217,7 @@ def parse_args():
     parser.add_argument(
         "--device",
         type=str,
-        default="0",
+        default="gpu",
         help="GPU"
     )
     parser.add_argument(
@@ -224,6 +231,12 @@ def parse_args():
         type=int,
         default=100,
         help="Batch size"
+    )
+    parser.add_argument(
+        "--test-batch-size",
+        type=int,
+        default=200,
+        help="Test Batch size"
     )
     parser.add_argument(
         "--lr",
@@ -281,11 +294,11 @@ def parse_args():
 
     args = parser.parse_args()
 
-    assert "_" in args.dataset
-    assert (
-        "FUN" in args.dataset
-        or "GO" in args.dataset
-        or "others" in args.dataset
-    )
+    #  assert "_" in args.dataset
+    #  assert (
+    #      "FUN" in args.dataset
+    #      or "GO" in args.dataset
+    #      or "others" in args.dataset
+    #  )
 
     return args

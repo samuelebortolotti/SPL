@@ -20,7 +20,7 @@ class DenseGatingFunction(torch.nn.Module):
 
         gate_layers = []
         for i, l in enumerate(layers_shapes[:-1]):
-            gate_layers.extend([ (f"linear{i+1}",torch.nn.Linear(l, layers_shapes[i+1], device='cuda:0')),
+            gate_layers.extend([ (f"linear{i+1}",torch.nn.Linear(l, layers_shapes[i+1], device='cpu')),
                                 (f"relu{i+1}",torch.nn.ReLU())])
             if gate_dropout:
                 gate_layers.append((f"dropout{i+1}",torch.nn.Dropout(p=args.gate_dropout)))
@@ -45,7 +45,7 @@ class DenseGatingFunction(torch.nn.Module):
 
         self.outputs = []
         for i, o in enumerate(flattened_shapes):
-            setattr(self, f"output{i}", torch.nn.Sequential(torch.nn.Linear(layers_shapes[-1], o, device='cuda:0'),
+            setattr(self, f"output{i}", torch.nn.Sequential(torch.nn.Linear(layers_shapes[-1], o, device='cpu'),
                                              #torch.nn.ReLU()
                                              ))
             self.outputs.append(getattr(self, f"output{i}"))

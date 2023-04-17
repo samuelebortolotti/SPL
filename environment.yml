@@ -1,4 +1,4 @@
-name: semprola
+name: spl
 channels:
   - pytorch
   - anaconda
@@ -216,5 +216,5 @@ dependencies:
   - zstd=1.4.9=haebb681_0
   - pip:
     - pydot==1.4.2
-    - pysdd==0.2.10
+    - pysdd==0.2.11
 prefix: /space/ahmedk/anaconda3/envs/semprola

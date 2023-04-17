@@ -34,7 +34,6 @@ class CircuitMPE:
         self.beta.rand_parameters()
 
     def set_params(self, thetas, log_space=True):
-
         #self.beta.mixing = thetas[-1].log_softmax(dim=1) if log_space else thetas[-1].softmax(dim=1)
         self.beta.mixing = thetas[-2].log_softmax(dim=1) if log_space else thetas[-2].softmax(dim=1)
         self.beta.root_mixing = thetas[-1].log_softmax(dim=1) if log_space else thetas[-1].softmax(dim=1)

@@ -6,7 +6,6 @@ import torch
 from torch import log
 
 DEVICE = torch.device(torch.cuda.current_device() if torch.cuda.is_available() else "cpu")
-DEVICE = torch.device("cuda")#torch.device(torch.cuda.current_device() if torch.cuda.is_available() else "cpu")
 
 from torch import Tensor    
 def logsumexp(tensor: Tensor, dim: int, keepdim: bool = False) -> Tensor:
@@ -743,6 +742,8 @@ class NormalizedSddNode(SddNode):
                         data = torch.cat((data, element.data.unsqueeze(0)), dim=0)
                     #data = torch.stack((e.data for e in node.elements))
                     #import pdb; pdb.set_trace()
+                    print("Node", node.theta.shape)
+                    print("Data", data.shape)
                     data = logsumexp(node.theta + data, dim=0)
 
                 else: # node.is_decomposition

@@ -82,9 +82,6 @@ def main():
 
     args = parse_args()
 
-    # Set device
-    torch.cuda.set_device(int(args.device))
-
     # Load train, val and test set
     dataset_name, ontology = args.dataset.split("_")[:2]
     hidden_dim = hidden_dims[ontology][dataset_name]
