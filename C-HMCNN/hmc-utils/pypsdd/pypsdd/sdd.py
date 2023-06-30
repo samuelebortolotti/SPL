@@ -891,7 +891,14 @@ class NormalizedSddNode(SddNode):
     def mars(self, clear_data=True,do_bottom_up=True):
         """Evaluate a PSDD top-down for its marginals."""
 
-        var_marginals = torch.full(((2*self.vtree.var_count+1), *self.theta.transpose(0,1).shape[1:]), -float('inf'), device=DEVICE)#[ 0.0 ] * (2*self.vtree.var_count+1)
+        #  var_marginals = torch.full(((2*self.vtree.var_count+1), *self.theta.transpose(0,1).shape[1:]), -float('inf'), device=DEVICE)#[ 0.0 ] * (2*self.vtree.var_count+1)
+
+        # new
+        import numpy as np
+        #  var_marginals = np.full(((2 * self.vtree.var_count + 1), *self.theta.transpose(0, 1).shape[1:]), -float('inf'), dtype=np.float32)
+        var_marginals = np.full(((2 * self.vtree.var_count + 1), *self.theta.transpose(0, 1).shape[1:]), -float('inf'), dtype=np.float32)
+        var_marginals = torch.tensor(var_marginals, device=DEVICE)
+
         if self.is_false_sdd: return var_marginals
 
         for node in self.as_positive_list(clear_data=False): # init field
