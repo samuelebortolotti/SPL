@@ -3,6 +3,7 @@ sys.path.insert(0, './hmc-utils/pypsdd')
 
 import torch
 import torch.nn.functional as F
+from torch.distributions.categorical import Categorical
 from pypsdd import Vtree, SddManager, PSddManager, SddNode, Inst, io
 from pypsdd import UniformSmoothing, Prior
 
@@ -26,9 +27,11 @@ class CircuitMPE:
 
         # Storing psdd
         self.beta = self.pmanager.copy_and_normalize_sdd(self.alpha, self.vtree)
+        self.beta.vtree = self.vtree
 
     def overparameterize(self, S=2):
         self.beta = self.beta.overparameterize(S)
+        self.beta.vtree = self.vtree
 
     def rand_params(self):
         self.beta.rand_parameters()
@@ -70,6 +73,14 @@ class CircuitMPE:
         mpe_inst = self.beta.get_mpe(batch_size)
         argmax = self.beta.mixing.argmax(dim=-1)
         return mpe_inst[torch.arange(batch_size), :, argmax]
+
+    def get_sample(self, batch_size):
+        mpe_inst = self.beta.sample(batch_size)
+        sample = Categorical(probs=self.beta.mixing.exp()).sample()
+        return mpe_inst[torch.arange(batch_size), :, sample]
+
+    def get_marginals(self):
+        return self.beta.mars()
 
     def weighted_model_count(self, lit_weights):
         return self.beta.weighted_model_count(lit_weights)
