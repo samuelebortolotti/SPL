@@ -36,14 +36,68 @@ def logsumexp(tensor: Tensor, dim: int, keepdim: bool = False) -> Tensor:
 #        grad_input[torch.isnan(grad_output)] = 0
 #        return grad_input
 
+
+def mylogaddexp(x, y, epsilon=1e-8):
+    MY_INF = 1e9
+
+    max_val = torch.max(x, y)
+    diff = torch.abs(x - y)
+
+    if torch.any(torch.isinf(x)):
+        x = torch.sign(x) * MY_INF #sys.float_info.max
+    elif torch.any(torch.isnan(x)):
+        raise ValueError("Invalid input: NaN values found in x")
+
+    if torch.any(torch.isinf(y)):
+        y = torch.sign(y) * MY_INF # sys.float_info.max
+    elif torch.any(torch.isnan(y)):
+        raise ValueError("Invalid input: NaN values found in y")
+
+    diff = torch.abs(x - y)
+
+    if torch.any(torch.isnan(max_val)):
+        raise ValueError("Invalid input: NaN values found in max_val")
+    elif torch.any(torch.isinf(max_val)):
+        max_val = torch.sign(max_val) * MY_INF # sys.float_info.max
+
+    if torch.any(torch.isnan(diff)):
+        raise ValueError("Invalid input: NaN values found in diff")
+    elif torch.any(torch.isinf(diff)):
+        raise ValueError("Invalid input: Inf values found in diff")
+
+    result = max_val + torch.log1p(torch.exp(-diff) + epsilon)
+
+    if torch.any(torch.isnan(result)):
+        raise ValueError("Invalid output: NaN values found in result")
+    elif torch.any(torch.isinf(result)):
+        torch.set_printoptions(threshold=torch.inf)
+        raise ValueError("Invalid output: Inf values found in result")
+
+    return result
+
 class SafeLogAddExp(torch.autograd.Function):
-    """Implements a torch function that is exactly like logaddexp, 
+    """Implements a torch function that is exactly like logaddexp,
     but is willing to zero out nans on the backward pass."""
-    
+
     @staticmethod
-    def forward(ctx, input, other):            
+    def forward(ctx, input, other):
+        #  with torch.enable_grad():
+        #      output = torch.logaddexp(input, other) # internal copy of output
+
+
+        # new
+        # import sys
+        MY_INF = 1e9
         with torch.enable_grad():
-            output = torch.logaddexp(input, other) # internal copy of output
+            if torch.any(torch.isinf(input)):
+                input = torch.sign(input) * MY_INF #sys.float_info.max
+            if torch.any(torch.isinf(other)):
+                other = torch.sign(other) * MY_INF #sys.float_info.max
+
+            output = torch.logaddexp(input, other)  # internal copy of output
+            #  output = mylogaddexp(input, other)
+
+
         ctx.save_for_backward(input, other, output)
         return output.clone()
 
@@ -872,7 +926,8 @@ class NormalizedSddNode(SddNode):
                     s.pr_context = logaddexp(s.pr_context, theta + node.pr_context)
             node.pr_node = node.pr_context 
 
-        return (self.mixing + var_marginals).logsumexp(-1)
+        #  return (self.mixing + var_marginals).logsumexp(-1)
+        return logsumexp(self.mixing + var_marginals, dim=-1)
 
 ########################################
 # End Determinstic and SD PCs
